@@ -1,3 +1,7 @@
+## Next Voting
+
+Belajar NextJs studi kasus web voting dari yt https://www.youtube.com/watch?v=IlNRFc2d2dU&t=8s
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
