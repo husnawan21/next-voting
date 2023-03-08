@@ -12,10 +12,11 @@ export const authOptions = {
 		}),
 	],
 	callbacks: {
-		session({ session }: any) {
+		session({ session, token, user }: any) {
 			return session
 		},
 	},
+	secret: process.env.NEXTAUTH_URL,
 }
 
 export default NextAuth(authOptions)
