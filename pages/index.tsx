@@ -10,7 +10,6 @@ import { useSession } from 'next-auth/react'
 import { NextPage } from 'next'
 import useVotes from '@/lib/useVotes'
 import { useEffect, useState } from 'react'
-import { votes } from '@prisma/client'
 import moment from 'moment'
 import { showAlert } from '@/components/Alert'
 
