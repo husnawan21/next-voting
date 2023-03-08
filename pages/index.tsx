@@ -94,22 +94,25 @@ const Home: NextPage = () => {
 				{session && (
 					<div className='mb-10'>
 						<h3 className='my-5 text-lg font-bold'>Vote yang saya buat</h3>
-						<table className='w-full border border-gray-100 table-auto'>
-							<thead>
-								<tr className='border-b border-zinc-100'>
-									<th className='p-5 text-left'>No</th>
-									<th className='p-5 text-left'>Judul</th>
-									<th className='p-5 text-left'>Kandidat</th>
-									<th className='p-5 text-left'>Kode</th>
-									<th className='p-5 text-left'>Mulai</th>
-									<th className='p-5 text-left'>Selesai</th>
-									<th className='p-5 text-left'></th>
-								</tr>
-							</thead>
-							<tbody>
-								{votesApi && votesApi.length > 0 ? (
-									votesApi.map((vote: Votes, index: number) => (
-										<tr key={index}>
+						{votesApi && votesApi.length > 0 ? (
+							<table className='w-full border border-gray-100 table-auto'>
+								<thead>
+									<tr className='border-b border-gray-100'>
+										<th className='p-5 text-left'>No</th>
+										<th className='p-5 text-left'>Judul</th>
+										<th className='p-5 text-left'>Kandidat</th>
+										<th className='p-5 text-left'>Kode</th>
+										<th className='p-5 text-left'>Mulai</th>
+										<th className='p-5 text-left'>Selesai</th>
+										<th className='p-5 text-left'></th>
+									</tr>
+								</thead>
+								<tbody>
+									{votesApi.map((vote: Votes, index: number) => (
+										<tr
+											key={index}
+											className='border-b border-b-gray-100 last:border-b-0'
+										>
 											<td className='p-5 text-left'>{index + 1}</td>
 											<td className='p-5 font-semibold text-left text-emerald-600'>
 												<Link href={`/participant/${vote.code}`}>
@@ -135,7 +138,9 @@ const Home: NextPage = () => {
 												)}
 											</td>
 											<td className='p-5 text-left'>
-												{moment(vote.endDateTime).format('DD, MMMM YYYY, h:mm:ss')}
+												{moment(vote.endDateTime).format(
+													'DD, MMMM YYYY, h:mm:ss'
+												)}
 											</td>
 											<td className='p-5 text-left'>
 												<Link href={`/vote/${vote.code}`}>
@@ -146,12 +151,12 @@ const Home: NextPage = () => {
 												</button>
 											</td>
 										</tr>
-									))
-								) : (
-									<div className='font-semibold py-5 px-6'>Belum ada votes</div>
-								)}
-							</tbody>
-						</table>
+									))}
+								</tbody>
+							</table>
+						) : (
+							<div className='font-semibold py-5 px-6'>Belum ada votes</div>
+						)}
 					</div>
 				)}
 				{/* </Table> */}
