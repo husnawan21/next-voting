@@ -6,14 +6,45 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import RestrictedPage from '@/components/page/RestrictedPage'
+import { showAlert } from '@/components/Alert'
 
 export default function Participant() {
 	const router = useRouter()
 
 	const [code, setCode] = useState('')
 
-	const handleSubmit = () => {
-		router.push('/participant/kode-voting')
+	const handleSubmit = async () => {
+		if (code === '') {
+			showAlert({
+				title: 'Waduh... 😣',
+				message: 'Tolong masukkan kode yang benar',
+			})
+			return
+		}
+
+		await fetch('/api/participant/' + code, {
+			method: 'GET',
+		})
+			.then(res => res.json())
+			.then(data => {
+				if (data?.message === 'NOT FOUND') {
+					showAlert({
+						title: 'Waduh... 😣',
+						message: 'Kode yang kamu masukkan salah',
+					})
+					return
+				}
+				router.push('/participant/' + code)
+				return
+			})
+	}
+
+	const { data: session } = useSession()
+
+	if (!session) {
+		return <RestrictedPage />
 	}
 
 	return (
@@ -26,16 +57,16 @@ export default function Participant() {
 			</Head>
 			<Layout>
 				<Menu />
-				<div className='flex items-center h-full justify-center flex-col'>
+				<div className='flex flex-col items-center justify-center h-full'>
 					<Image
 						src={'/assets/participant.svg'}
 						alt='participant'
-						height={200}
-						width={180}
+						height={250}
+						width={200}
 						priority
 					/>
-					<h1 className='font-bold text-4xl mt-6'>Ikutan Voting</h1>
-					<h2 className='w-2/3 text-lg my-4 text-center'>
+					<h1 className='mt-6 text-4xl font-bold'>Ikutan Voting</h1>
+					<h2 className='w-2/3 my-4 text-lg text-center'>
 						Untuk ikutan voting, kamu harus memasukkan kode voting yang sudah di
 						berikan panitia/penyelenggara
 					</h2>
@@ -53,7 +84,7 @@ export default function Participant() {
 						type='primary'
 						className='w-1/3 mt-4'
 					/>
-					<button className='text-sm mt-6' onClick={() => router.push('/')}>
+					<button className='mt-6 text-sm' onClick={() => router.push('/')}>
 						Kembali
 					</button>
 				</div>

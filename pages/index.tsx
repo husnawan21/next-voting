@@ -6,9 +6,51 @@ import { LinkIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import Layout from '@/components/_layout'
 import { useRouter } from 'next/router'
+import { useSession } from 'next-auth/react'
+import { NextPage } from 'next'
+import useVotes from '@/lib/useVotes'
+import { useEffect, useState } from 'react'
+import { votes } from '@prisma/client'
+import moment from 'moment'
+import { showAlert } from '@/components/Alert'
 
-export default function Home() {
+const Home: NextPage = () => {
 	const router = useRouter()
+	const { data: session } = useSession()
+	const { data: dataVotesApi, error, isLoading } = useVotes()
+
+	const [votes, setVotes] = useState<votes[]>()
+
+	const handleDelete = (code: string) => {
+		showAlert({
+			title: 'Kamu yakin?',
+			message: 'Ingin menghapus data?',
+			onPositiveClick() {
+				fetch(`/api/vote/${code}`, {
+					method: 'DELETE',
+				})
+					.then(() => {
+						showAlert({
+							title: 'Berhasil 🔥',
+							message: 'Data berhasil dihapus',
+						})
+						setVotes(votes?.filter(vote => vote.code !== code))
+					})
+					.catch(() => {
+						showAlert({
+							title: 'Gagal 😣',
+							message: 'Data gagal dihapus',
+						})
+					})
+			},
+		})
+	}
+
+	useEffect(() => {
+		if (dataVotesApi) {
+			setVotes(dataVotesApi.data)
+		}
+	}, [dataVotesApi])
 
 	return (
 		<>
@@ -50,42 +92,75 @@ export default function Home() {
 				{/* </Header> */}
 
 				{/* <Table> */}
-				<div>
-					<h3 className='my-5 text-lg font-bold'>Vote yang saya buat</h3>
-					<table className='w-full border border-gray-100 table-auto'>
-						<thead>
-							<tr className='border-b border-zinc-100'>
-								<th className='p-5 text-left'>No</th>
-								<th className='p-5 text-left'>Judul</th>
-								<th className='p-5 text-left'>Kandidat</th>
-								<th className='p-5 text-left'>Kode</th>
-								<th className='p-5 text-left'>Mulai</th>
-								<th className='p-5 text-left'>Selesai</th>
-								<th className='p-5 text-left'></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td className='p-5 text-left'>1</td>
-								<td className='p-5 text-left'>Judul Voting</td>
-								<td className='p-5 text-left'>Budi vs Anto</td>
-								<td className='p-5 text-left'>BFWFWVX</td>
-								<td className='p-5 text-left'>5 Maret 2023 11:00 AM</td>
-								<td className='p-5 text-left'>5 Maret 2023 11:00 PM</td>
-								<td className='p-5 text-left'>
-									<Link href='#'>
-										<LinkIcon className='w-8 h-8 p-2 transition duration-150 rounded hover:bg-yellow-100' />
-									</Link>
-									<Link href='#'>
-										<TrashIcon className='w-8 h-8 p-2 transition duration-150 rounded hover:bg-red-100' />
-									</Link>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
+				{session && (
+					<div className='mb-10'>
+						<h3 className='my-5 text-lg font-bold'>Vote yang saya buat</h3>
+						<table className='w-full border border-gray-100 table-auto'>
+							<thead>
+								<tr className='border-b border-zinc-100'>
+									<th className='p-5 text-left'>No</th>
+									<th className='p-5 text-left'>Judul</th>
+									<th className='p-5 text-left'>Kandidat</th>
+									<th className='p-5 text-left'>Kode</th>
+									<th className='p-5 text-left'>Mulai</th>
+									<th className='p-5 text-left'>Selesai</th>
+									<th className='p-5 text-left'></th>
+								</tr>
+							</thead>
+							<tbody>
+								{votes && votes.length > 0 ? (
+									votes.map((vote: votes, index: number) => (
+										<tr key={index}>
+											<td className='p-5 text-left'>{index + 1}</td>
+											<td className='p-5 font-semibold text-left text-emerald-600'>
+												<Link href={`/participant/${vote.code}`}>
+													{vote.title}
+												</Link>
+											</td>
+											<td className='p-5 text-left'>
+												{vote.candidates.map((c: Candidate, index: number) => (
+													<span key={index} className='medium'>
+														{c.name +
+															(index < vote.candidates.length - 1
+																? ' vs '
+																: '')}
+													</span>
+												))}
+											</td>
+											<td className='p-5 font-semibold text-left'>
+												{vote.code}
+											</td>
+											<td className='p-5 text-left'>
+												{moment(vote.startDateTime).format(
+													'DD, MMMM YYYY, h:mm:ss'
+												)}
+											</td>
+											<td className='p-5 text-left'>
+												{moment(vote.endDateTime).format(
+													'DD, MMMM YYYY, h:mm:ss'
+												)}
+											</td>
+											<td className='p-5 text-left'>
+												<Link href={`/vote/${vote.code}`}>
+													<LinkIcon className='w-8 h-8 p-2 transition duration-150 rounded hover:bg-yellow-100' />
+												</Link>
+												<button onClick={() => handleDelete(vote.code)}>
+													<TrashIcon className='w-8 h-8 p-2 transition duration-150 rounded hover:bg-red-100' />
+												</button>
+											</td>
+										</tr>
+									))
+								) : (
+									<div className='font-semibold py-5 px-6'>Belum ada votes</div>
+								)}
+							</tbody>
+						</table>
+					</div>
+				)}
 				{/* </Table> */}
 			</Layout>
 		</>
 	)
 }
+
+export default Home
