@@ -169,11 +169,6 @@ export default function DetailParticipate() {
 
 					{/* <Submit> */}
 					<div className='mt-10 text-center'>
-						{/* <Button
-							label='Kirim Vote 🔥'
-							type='primary'
-							onClick={() => submitVote()}
-						/> */}
 						{session?.user?.email != dataVoteApi?.data?.publisher &&
 							!dataParticipantApi?.data &&
 							currentState === STATE_STARTED && (
@@ -196,29 +191,6 @@ export default function DetailParticipate() {
 								Pembuat vote tidak dapat mengikuti voting
 							</span>
 						)}
-
-						{/* {session.user?.email != dataVoteApi?.data?.publisher &&
-							!dataParticipantApi &&
-							currentState === STATE_STARTED && (
-								<Button
-									label='Kirim Vote 🔥'
-									type='primary'
-									onClick={() => submitVote()}
-								/>
-							)}
-
-						{dataParticipantApi?.data && (
-							<span className='px-4 py-2 bg-gray-100 rounded'>
-								Kamu sudah memilih, tidak dibolehkan memilih ulang atau
-								mengganti pilihan
-							</span>
-						)}
-
-						{session.user?.email === dataVoteApi?.data?.publisher && (
-							<span className='px-4 py-2 bg-gray-100 rounded'>
-								Pembuat vote tidak dapat mengikuti voting
-							</span>
-						)} */}
 					</div>
 					{/* </Submit> */}
 				</div>

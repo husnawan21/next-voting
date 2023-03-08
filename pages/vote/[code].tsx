@@ -103,7 +103,7 @@ export default function DetailOrEditVote() {
 		setLoading(true)
 
 		// Mengirim data ke API
-		fetch(('/api/votes/' + code) as string, {
+		fetch(('https://pilpilan-voting.vercel.app/api/votes/' + code) as string, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',

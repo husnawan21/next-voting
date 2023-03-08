@@ -1,7 +1,6 @@
 import { getSession } from 'next-auth/react'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
-import { votes, participant } from '@prisma/client'
 
 export default async function handle(
 	req: NextApiRequest,
