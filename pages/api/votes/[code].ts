@@ -6,7 +6,7 @@ export default async function handle(
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
-	const session = getSession({ req })
+	const session = await getSession({ req })
 
 	if (!session) {
 		return res.status(401).json({ message: 'Login dahulu!' })
@@ -16,16 +16,16 @@ export default async function handle(
 
 	// Get Detail by Code
 	if (req.method === 'GET') {
-		const vote = await prisma.votes.findFirst({
+		const votes = await prisma.votes.findFirst({
 			select: {
 				id: true,
 				publisher: true,
 				title: true,
 				code: true,
-				startDateTime: true,
-				endDateTime: true,
 				candidates: true,
 				createdAt: true,
+				startDateTime: true,
+				endDateTime: true,
 				deletedAt: false,
 			},
 			where: {
@@ -34,7 +34,7 @@ export default async function handle(
 			},
 		})
 
-		if (!vote) {
+		if (!votes) {
 			res.status(404).json({
 				message: 'NOT FOUND',
 			})
@@ -55,7 +55,7 @@ export default async function handle(
 		// Count vote for each candidate
 		var candidates: Candidate[] = []
 		if (participants) {
-			candidates = vote?.candidates.map(candidate => {
+			candidates = votes?.candidates.map(candidate => {
 				const votes =
 					participants.filter(
 						participant => participant.candidate === candidate.name
@@ -68,15 +68,15 @@ export default async function handle(
 			}) as Candidate[]
 		}
 
-		const clientVote: Vote = {
-			id: vote?.id!,
-			title: vote?.title!,
-			publisher: vote?.publisher!,
-			code: vote?.code!,
+		const result = {
+			id: votes?.id,
+			title: votes?.title,
+			publisher: votes?.publisher,
+			code: votes?.code,
 			candidates: candidates,
-			startDateTime: String(vote?.startDateTime),
-			endDateTime: String(vote?.endDateTime),
-			createdAt: String(vote?.createdAt),
+			startDateTime: String(votes?.startDateTime),
+			endDateTime: String(votes?.endDateTime),
+			createdAt: String(votes?.createdAt),
 			totalVotes: candidates
 				? candidates.reduce(
 						(acc, candidate) => acc + (candidate.votes ? candidate.votes : 0),
@@ -85,9 +85,9 @@ export default async function handle(
 				: 0,
 		}
 
-		const response: Res<Vote> = {
+		const response = {
 			status: 200,
-			data: clientVote,
+			data: result,
 		}
 
 		return res.json(response)
@@ -107,19 +107,19 @@ export default async function handle(
 	}
 
 	// Update by Code
-	if (req.method === 'PUT') {
-		const result = await prisma.votes.update({
-			where: {
-				code: code as string,
-			},
-			data: {
-				candidates: req.body.candidates,
-				endDateTime: req.body.endDateTime,
-				startDateTime: req.body.startDateTime,
-				title: req.body.title,
-			},
-		})
+	// if (req.method === 'PUT') {
+	// 	const result = await prisma.votes.update({
+	// 		where: {
+	// 			code: code as string,
+	// 		},
+	// 		data: {
+	// 			candidates: req.body.candidates,
+	// 			endDate: req.body.endDate,
+	// 			startDate: req.body.startDate,
+	// 			title: req.body.title,
+	// 		},
+	// 	})
 
-		return res.json(result)
-	}
+	// 	return res.json(result)
+	// }
 }

@@ -17,16 +17,16 @@ import { showAlert } from '@/components/Alert'
 const Home: NextPage = () => {
 	const router = useRouter()
 	const { data: session } = useSession()
-	const { data: dataVotesApi, error, isLoading } = useVotes()
+	const { votes: votesApi, error, isLoading } = useVotes()
 
-	const [votes, setVotes] = useState<votes[]>()
+	const [votes, setVotes] = useState<Votes[]>()
 
 	const handleDelete = (code: string) => {
 		showAlert({
 			title: 'Kamu yakin?',
 			message: 'Ingin menghapus data?',
 			onPositiveClick() {
-				fetch(`/api/vote/${code}`, {
+				fetch('/api/votes/' + code, {
 					method: 'DELETE',
 				})
 					.then(() => {
@@ -47,10 +47,10 @@ const Home: NextPage = () => {
 	}
 
 	useEffect(() => {
-		if (dataVotesApi) {
-			setVotes(dataVotesApi.data)
+		if (votes) {
+			setVotes(votesApi)
 		}
-	}, [dataVotesApi])
+	}, [votesApi])
 
 	return (
 		<>
@@ -108,8 +108,8 @@ const Home: NextPage = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{votes && votes.length > 0 ? (
-									votes.map((vote: votes, index: number) => (
+								{votesApi && votesApi.length > 0 ? (
+									votesApi.map((vote: Votes, index: number) => (
 										<tr key={index}>
 											<td className='p-5 text-left'>{index + 1}</td>
 											<td className='p-5 font-semibold text-left text-emerald-600'>
@@ -136,9 +136,7 @@ const Home: NextPage = () => {
 												)}
 											</td>
 											<td className='p-5 text-left'>
-												{moment(vote.endDateTime).format(
-													'DD, MMMM YYYY, h:mm:ss'
-												)}
+												{moment(vote.endDateTime).format('DD, MMMM YYYY, h:mm:ss')}
 											</td>
 											<td className='p-5 text-left'>
 												<Link href={`/vote/${vote.code}`}>

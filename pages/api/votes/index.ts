@@ -30,7 +30,7 @@ export default async function handle(
 		return res.json(result)
 	}
 
-	// Get All by User
+	// Get All Vote by User
 	if (req.method === 'GET') {
 		const result = await prisma.votes.findMany({
 			where: {
@@ -45,5 +45,22 @@ export default async function handle(
 		return res.json(response)
 	}
 
-	return res.status(200).json({ data: 'Hi Mom' })
+	// Update Votes
+	if (req.method === 'PUT') {
+		const result = await prisma.votes.update({
+			where: {
+				code: req.body.code,
+			},
+			data: {
+				candidates: req.body.candidates,
+				endDateTime: req.body.endDate,
+				startDateTime: req.body.startDate,
+				title: req.body.title,
+			},
+		})
+
+		return res.json(result)
+	}
+
+	return res.status(400).json({ data: 'Method not allowed' })
 }

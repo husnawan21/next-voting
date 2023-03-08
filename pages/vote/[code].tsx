@@ -21,31 +21,26 @@ registerLocale('id', id)
 export default function DetailOrEditVote() {
 	const { data: session } = useSession()
 
+	const router = useRouter()
+	const [loading, setLoading] = useState(false)
+	const { code } = router.query
+	const { vote, error } = useVote(code as string)
 	const [startDateTime, setStartDateTime] = useState(new Date())
 	const [endDateTime, setEndDateTime] = useState(new Date())
 	const [candidates, setCandidates] = useState<Candidate[]>([])
 	const [title, setTitle] = useState('')
 
-	const [loading, setLoading] = useState(false)
-	const router = useRouter()
-
-	const { code } = router.query
-	const { data: dataVoteApi, error } = useVote(code as string)
-
 	useEffect(() => {
-		if (dataVoteApi && dataVoteApi.data) {
-			const d = dataVoteApi.data
-			setTitle(d.title)
-			setStartDateTime(new Date(d.startDateTime))
-			setEndDateTime(new Date(d.endDateTime))
-			setCandidates(d.candidates)
+		if (vote) {
+			setTitle(vote.title)
+			setStartDateTime(new Date(vote.startDateTime))
+			setEndDateTime(new Date(vote.endDateTime))
+			setCandidates(vote.candidates)
 		}
-	}, [dataVoteApi])
+	}, [vote])
 
-	const submitCandidate = (candidate: Candidate) => {
-		setCandidates(
-			candidates.map(c => (c.key === candidate.key ? candidate : c))
-		)
+	if (!session) {
+		return <RestrictedPage />
 	}
 
 	const addCandidateForm = () => {
@@ -68,6 +63,12 @@ export default function DetailOrEditVote() {
 		})
 
 		setCandidates(newCandidates)
+	}
+
+	const submitCandidate = (candidate: Candidate) => {
+		setCandidates(
+			candidates.map(c => (c.key === candidate.key ? candidate : c))
+		)
 	}
 
 	const updateVote = (e: any) => {
@@ -103,16 +104,23 @@ export default function DetailOrEditVote() {
 		setLoading(true)
 
 		// Mengirim data ke API
-		fetch(('https://pilpilan-voting.vercel.app/api/votes/' + code) as string, {
+		fetch('/api/votes', {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
+				code: code,
 				title,
 				startDateTime,
 				endDateTime,
-				candidates,
+				// candidate with no vote harus dikirim
+				candidates: candidates.map(c => ({
+					name: c.name,
+					title: c.title,
+					key: c.key,
+				})),
+				publisher: session?.user?.email,
 			}),
 		})
 			.then(res => res.json())
@@ -126,10 +134,6 @@ export default function DetailOrEditVote() {
 			.finally(() => {
 				setLoading(false)
 			})
-	}
-
-	if (!session) {
-		return <RestrictedPage />
 	}
 
 	return (
@@ -224,7 +228,6 @@ export default function DetailOrEditVote() {
 								</div>
 							</div>
 							{/* </Kandidat> */}
-							{/* {JSON.stringify(candidates)} */}
 							<div className='mt-10 text-right'>
 								<Button
 									label='Simpan Voting 🔥'

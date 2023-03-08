@@ -25,7 +25,7 @@ export default function DetailParticipate() {
 	const { code } = router.query
 	const { data: dataParticipantApi, mutate: mutateParticipantApi } =
 		useParticipant(code as string)
-	const { data: dataVoteApi, mutate: mutateVoteApi } = useVote(code as string)
+	const { vote, mutate: mutateVoteApi } = useVote(code as string)
 	const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
 		null
 	)
@@ -39,19 +39,16 @@ export default function DetailParticipate() {
 				message: 'Kamu akan memilih kandidat ' + selectedCandidate.name,
 				positiveBtnText: 'Ya',
 				onPositiveClick: async () => {
-					const res = await fetch(
-						'/api/participant/' + dataVoteApi?.data?.code,
-						{
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-							},
-							body: JSON.stringify({
-								candidate: selectedCandidate.name,
-								email: session?.user?.email,
-							}),
-						}
-					)
+					const res = await fetch('/api/participant/' + vote?.code, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							candidate: selectedCandidate.name,
+							email: session?.user?.email,
+						}),
+					})
 
 					if (res.status === 200) {
 						mutateVoteApi()
@@ -73,8 +70,7 @@ export default function DetailParticipate() {
 	}
 
 	useEffect(() => {
-		if (dataVoteApi && dataVoteApi.data) {
-			const vote = dataVoteApi.data
+		if (vote) {
 			if (currentState === STATE_END) {
 				return
 			}
@@ -95,11 +91,11 @@ export default function DetailParticipate() {
 			}, 1000)
 			return () => clearInterval(interval)
 		}
-	}, [dataVoteApi])
+	}, [vote])
 
 	useEffect(() => {
-		if (dataParticipantApi && dataVoteApi) {
-			const candidate = dataVoteApi.data?.candidates.find(
+		if (dataParticipantApi && vote) {
+			const candidate = vote?.candidates.find(
 				c => c.name === dataParticipantApi.data?.candidate
 			)
 
@@ -107,7 +103,7 @@ export default function DetailParticipate() {
 				setSelectedCandidate(candidate)
 			}
 		}
-	}, [dataParticipantApi, dataVoteApi])
+	}, [dataParticipantApi, vote])
 
 	if (!session) {
 		return <RestrictedPage />
@@ -125,12 +121,12 @@ export default function DetailParticipate() {
 				<Menu />
 				<div>
 					<h1 className='mt-10 text-4xl font-bold text-center'>
-						{dataVoteApi?.data?.title}
+						{vote?.title}
 					</h1>
 					{/* <Timer> */}
 					<CountDown
-						start={String(dataVoteApi?.data?.startDateTime)}
-						end={String(dataVoteApi?.data?.endDateTime)}
+						start={String(vote?.startDateTime)}
+						end={String(vote?.endDateTime)}
 						currentState={currentState}
 						className='mt-10'
 					/>
@@ -139,37 +135,33 @@ export default function DetailParticipate() {
 
 					{/* <Kandidat> */}
 					<div className='w-2/3 mx-auto mt-10 space-y-4 '>
-						{dataVoteApi?.data?.candidates.map(
-							(candidate: Candidate, index: number) => (
-								<CandidateItem
-									onClick={() =>
-										!dataParticipantApi?.data &&
-										!dataVoteApi.data?.publisher &&
-										currentState === STATE_STARTED &&
-										setSelectedCandidate(candidate)
-									}
-									name={candidate.name}
-									title={'Kandidat ' + candidate.key}
-									index={candidate.key}
-									percentage={
-										candidate.votes
-											? (candidate.votes /
-													(dataVoteApi.data?.totalVotes || 0)) *
-											  100
-											: 0
-									}
-									// percentage= {candidate.votes ? candidate.votes/dataVoteApi.data?.totalVote*100 : 0}
-									isSelected={selectedCandidate?.name === candidate.name}
-									key={candidate.key}
-								/>
-							)
-						)}
+						{vote?.candidates.map((candidate: Candidate, index: number) => (
+							<CandidateItem
+								onClick={() =>
+									!dataParticipantApi?.data &&
+									!vote?.publisher &&
+									currentState === STATE_STARTED &&
+									setSelectedCandidate(candidate)
+								}
+								name={candidate.name}
+								title={'Kandidat ' + candidate.key}
+								index={candidate.key}
+								percentage={
+									candidate.votes
+										? (candidate.votes / (vote?.totalVotes || 0)) * 100
+										: 0
+								}
+								// percentage= {candidate.votes ? candidate.votes/dataVoteApi.data?.totalVote*100 : 0}
+								isSelected={selectedCandidate?.name === candidate.name}
+								key={candidate.key}
+							/>
+						))}
 					</div>
 					{/* </Kandidat> */}
 
 					{/* <Submit> */}
 					<div className='mt-10 text-center'>
-						{session?.user?.email != dataVoteApi?.data?.publisher &&
+						{session?.user?.email != vote?.publisher &&
 							!dataParticipantApi?.data &&
 							currentState === STATE_STARTED && (
 								<Button
@@ -186,7 +178,7 @@ export default function DetailParticipate() {
 							</span>
 						)}
 
-						{session.user?.email === dataVoteApi?.data?.publisher && (
+						{session.user?.email === vote?.publisher && (
 							<span className='px-4 py-2 bg-gray-100 rounded'>
 								Pembuat vote tidak dapat mengikuti voting
 							</span>
